@@ -21,7 +21,7 @@ class rnn(torch.nn.Module):
 
         self.ih = torch.nn.Linear(64, 128)
         self.hh = torch.nn.Linear(128, 128)
-
+        
     def rnnCell(self, input, hidden):
         """
         TODO: Using only the above defined linear layers and a tanh
@@ -30,8 +30,11 @@ class rnn(torch.nn.Module):
               some input (inputDim = 64) and the current hidden state
               (hiddenDim = 128), and return the new hidden state.
         """
-        
+                # out, hiddenState = torch.nn.RNN(input, hidden)
 
+        rnn = torch.nn.RNNCell(128,128)
+        hiddenState = rnn(input,hidden)
+        return hiddenState
     def forward(self, input):
         hidden = torch.zeros(128)
         """
@@ -42,6 +45,12 @@ class rnn(torch.nn.Module):
               Return the final hidden state after the
               last input in the sequence has been processed.
         """
+        batchSize = input.size(1)
+        
+        for i in range(batchSize) :
+            x = self.rnnCell(input,hidden)
+        return x
+        
 
 class rnnSimplified(torch.nn.Module):
 
@@ -52,7 +61,9 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = None
+        # self.net = None
+        # self.net = torch.nn.RNN(64,128,num_layers=)
+        
 
     def forward(self, input):
         _, hidden = self.net(input)
