@@ -31,8 +31,8 @@ class rnn(torch.nn.Module):
               (hiddenDim = 128), and return the new hidden state.
         """
                 # out, hiddenState = torch.nn.RNN(input, hidden)
-
-        rnn = torch.nn.RNNCell(128,128)
+        input = self.ih(input.view(input.size(0) ,-1))
+        rnn = torch.nn.RNNCell(64,128)
         hiddenState = rnn(input,hidden)
         return hiddenState
     def forward(self, input):
@@ -63,11 +63,22 @@ class rnnSimplified(torch.nn.Module):
         """
         # self.net = None
         # self.net = torch.nn.RNN(64,128,num_layers=)
+        self.ih = torch.nn.Linear(64, 128)
         
+        self.rnn = torch.nn.RNN(128,128,2)
+    def net(self, input, hidden=None):
+        x = input.view(input.size(0) ,-1)
+        x = self.ih(x)
+        # x.view(x.shape[0], -1)
+        output, hidden = self.rnn(x, hidden)
+        
+        return output, hidden
 
     def forward(self, input):
-        _, hidden = self.net(input)
-
+        hidden = torch.zeros(128)
+        for i in range(input.size(1)):
+            _, hidden = self.net(input, hidden)
+            
         return hidden
 
 def lstm(input, hiddenSize):
