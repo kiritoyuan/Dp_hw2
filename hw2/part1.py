@@ -86,7 +86,7 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    lstm = None
+    lstm = torch.nn.LSTM(input.size(2),hiddenSize,2)
     return lstm(input)
 
 def conv(input, weight):
@@ -96,3 +96,4 @@ def conv(input, weight):
           The convolution should be along the sequence axis.
           input is of size [batchSize, inputDim, seqLength]
     """
+    # self.conv1 = nn.Conv2d(1,10, kernel_size=5, stride=1)
