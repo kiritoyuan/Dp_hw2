@@ -40,7 +40,7 @@ class rnn(torch.nn.Module):
         x = self.ih(input)
         hid = self.hh(hidden)
         # tanh activation: tanh(wight_input * input + weight_hidden*hidden + bias)
-        tanh = torch.nn.functional.tanh(x + hid + 0)
+        tanh = torch.tanh(x + hid + 0)
         return tanh
 
     def forward(self, input):
@@ -58,8 +58,8 @@ class rnn(torch.nn.Module):
         # hidden0 = self.rnnCell(input, hidden)
 
         for i in input :
-            x = self.rnnCell(i, hidden)
-        return x
+            hidden = self.rnnCell(i, hidden)
+        return hidden
         
 
 class rnnSimplified(torch.nn.Module):
@@ -71,7 +71,7 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = torch.nn.RNN(64,128,num_layers=1)
+        self.net = torch.nn.RNN(64,128,1)
 
 
 
@@ -110,4 +110,4 @@ def conv(input, weight):
     # input_size = input.size(2)
     # weight_size = len(weight)
     # conv = torch.nn.Conv1d(input_size, weight_size, kernel_size=8, padding=5)
-    return torch.nn.Conv1d(input, weight)
+    return torch.nn.functional.conv1d(input, weight)
