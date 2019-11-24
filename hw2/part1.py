@@ -96,4 +96,9 @@ def conv(input, weight):
     """
     # src :https://pytorch.org/docs/stable/nn.functional.html
     #  torch.nn.functional.conv1d(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1)
-    return torch.nn.functional.conv1d(input, weight)
+    # weight tensor is of shape (out_channels, in_channels/groups, kernel_size)
+    out_c, in_g, kernel_size = weight.shape
+    in_channels = input.shape[1]    #inputDim
+    conv = torch.nn.Conv1d(in_channels, out_c, kernel_size, bias=False)
+    conv.weight.data = weight
+    return conv(input)
