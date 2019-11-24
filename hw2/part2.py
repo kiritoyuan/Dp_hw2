@@ -43,8 +43,8 @@ class NetworkLstm(tnn.Module):
         # according to pytorch document, batch_first should be true 
         # if the input and output tensors are provided as (batch, seq, feature). 
         self.lstm = torch.nn.LSTM(50, 100, batch_first=True)
-        self.l1 = torch.nn.Linear(100,64)
-        self.l2 = torch.nn.Linear(64,1)
+        self.l1 = torch.nn.Linear(100, 64)
+        self.l2 = torch.nn.Linear(64, 1)
 
 
 
@@ -54,25 +54,13 @@ class NetworkLstm(tnn.Module):
         TODO:
         Create the forward pass through the network.
         """
-        # hidden = (torch.zeros(100) , torch.zeros(100))
-        # # print("input shape is " + input.shape(0) + " " + input.shape(1) + input.shape(2))
-        # # print("input size is " + input.size(0))
-        # for i in range(len(input)) :
-        #     x = input[i].view(input.shape[0],-1)
-        #     output, (h_n,c_n) = self.lstm(x, hidden)
-        #     x = self.l1(h_n)
-        #     x = tnn.ReLU(x)
-        #     x = self.l2(x)
-        # return x
 
         # src: https://pytorch.org/docs/stable/nn.html
         # h_n  hidden state 
         # c_n  hidden cell
         output, (h_n, c_n) = self.lstm(input)
-        
-        x = self.l1(h_n)
-
-        x = tnn.functional.relu(x)
+        # LSTM(hidden dim = 100) -> Linear(64) -> ReLu-> Linear(1)
+        x = tnn.functional.relu(self.l1(h_n))
         x = self.l2(x)
 
         return x.view(-1)
@@ -109,7 +97,7 @@ class NetworkCnn(tnn.Module):
         self.conv2 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
         self.max_pool2 = tnn.MaxPool1d(kernel_size=4)
         self.conv3 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
-        self.max_pool3 = tnn.functional.max_pool1d
+        self.max_pool3 = tnn.functional.max_pool1d(kernel_size=8, padding=5)
         self.linear = tnn.Linear(50,1)
 
     def forward(self, input, length):
@@ -142,14 +130,6 @@ def lossFunc():
     will add a sigmoid to the output and calculate the binary
     cross-entropy.
     """
-    # # Sigmoid activation function is of the form f(x)=1/(1+e^-x)
-    # activationFunction = 0.0
-    # try: 
-    #     activationFunction = 1.0 / (1.0 + np.exp(-x))
-    # except ValueError:
-    #     print('wrong type of tensors is passed ')
-    # return activationFunction
-
     # src: https://pytorch.org/docs/stable/nn.html
     # This loss combines a Sigmoid layer and the BCELoss in one single class
     return torch.nn.BCEWithLogitsLoss()
