@@ -33,7 +33,7 @@ class rnn(torch.nn.Module):
         x = self.ih(input)
         hid = self.hh(hidden)
         # tanh activation: tanh(wight_input * input + weight_hidden*hidden + bias)
-        tanh = torch.tanh(x + hid + 0)
+        tanh = torch.tanh(x + hid )
         return tanh
 
     def forward(self, input):
@@ -62,13 +62,13 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        self.net = torch.nn.RNN(64,128,1)
+        self.net = torch.nn.RNN(64,128)
 
 
 
     def forward(self, input):
-        hidden = torch.zeros(128)
-        out, hidden = self.net(input, hidden)
+        
+        out, hidden = self.net(input)
             
         return hidden
 
@@ -80,7 +80,7 @@ def lstm(input, hiddenSize):
     hidden = (torch.zeros(128), 
     torch.zeros(128))
 
-    input_size = input.size()[1] #?to fix
+    input_size = input.shape(-1)    #inputDim
 
     # lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
     lstm = torch.nn.LSTM(input_size, hiddenSize, batch_first=True)
