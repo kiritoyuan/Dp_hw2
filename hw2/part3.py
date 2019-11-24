@@ -12,12 +12,26 @@ from imdb_dataloader import IMDB
 class Network(tnn.Module):
     def __init__(self):
         super(Network, self).__init__()
+        # according to pytorch document, batch_first should be true 
+        # if the input and output tensors are provided as (batch, seq, feature). 
+        self.lstm = torch.nn.LSTM(50, 100, batch_first=True)
+        self.l1 = torch.nn.Linear(100, 64)
+        self.l2 = torch.nn.Linear(64, 1)
 
     def forward(self, input, length):
         """
         DO NOT MODIFY FUNCTION SIGNATURE
         Create the forward pass through the network.
         """
+        # src: https://pytorch.org/docs/stable/nn.html
+        # h_n  hidden state 
+        # c_n  hidden cell
+        output, (h_n, c_n) = self.lstm(input)
+        # LSTM(hidden dim = 100) -> Linear(64) -> ReLu-> Linear(1)
+        x = tnn.functional.relu(self.l1(h_n))
+        x = self.l2(x)
+
+        return x.view(-1)
 
 
 class PreProcessing():
@@ -37,6 +51,9 @@ def lossFunc():
     Define a loss function appropriate for the above networks that will
     add a sigmoid to the output and calculate the binary cross-entropy.
     """
+    # src: https://pytorch.org/docs/stable/nn.html
+    # This loss combines a Sigmoid layer and the BCELoss in one single class
+    return torch.nn.BCEWithLogitsLoss()
 
 def main():
     # Use a GPU if available, as it should be faster.
