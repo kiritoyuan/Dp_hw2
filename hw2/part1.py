@@ -93,9 +93,9 @@ def lstm(input, hiddenSize):
     # # lstm_out, (hn,cn) = lstm(input.view(len(input), input.size(0),-1), hidden)
     input_size = list(input.size())[1] #?to fix
 
-    self.lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
+    lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
     
-    return self.lstm(input)
+    return lstm(input)
 
 def conv(input, weight):
     """
@@ -107,7 +107,7 @@ def conv(input, weight):
     # conv1 = nn.Conv2d(input.size(1), 128,  kernel_size=5, stride=1)
     # for i in range(len(input)) :
     #     x = conv1(input[i])
-    input_size = input.size(2)
-    weight_size = len(weight)
-    conv = torch.nn.Conv1d(input_size, weight_size, kernel_size=8, padding=5)
-    return conv(input, weight)
+    # input_size = input.size(2)
+    # weight_size = len(weight)
+    # conv = torch.nn.Conv1d(input_size, weight_size, kernel_size=8, padding=5)
+    return torch.nn.Conv1d(input, weight)
