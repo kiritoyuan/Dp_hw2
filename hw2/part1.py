@@ -46,8 +46,6 @@ class rnn(torch.nn.Module):
               Return the final hidden state after the
               last input in the sequence has been processed.
         """
-        
-
         for i in input :
             hidden = self.rnnCell(i, hidden)
         return hidden
@@ -68,8 +66,7 @@ class rnnSimplified(torch.nn.Module):
 
     def forward(self, input):
         
-        out, hidden = self.net(input)
-            
+        out, hidden = self.net(input)           
         return hidden
 
 def lstm(input, hiddenSize):
@@ -77,15 +74,12 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    hidden = (torch.zeros(128), 
-    torch.zeros(128))
-
     input_size = input.shape(-1)    #inputDim
 
     # lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
     lstm = torch.nn.LSTM(input_size, hiddenSize, batch_first=True)
     
-    return lstm(input, hidden)
+    return lstm(input)
 
 def conv(input, weight):
     """
