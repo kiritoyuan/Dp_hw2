@@ -74,7 +74,7 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    input_size = input.shape(-1)    #inputDim
+    input_size = input.shape[-1]    #inputDim
 
     # lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
     lstm = torch.nn.LSTM(input_size, hiddenSize, batch_first=True)
