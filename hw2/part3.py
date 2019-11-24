@@ -57,8 +57,7 @@ def lossFunc():
 
 def main():
     # Use a GPU if available, as it should be faster.
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    device = torch.device("cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("Using device: " + str(device))
 
     # Load the training dataset, and create a data loader to generate a batch.
@@ -113,6 +112,7 @@ def main():
     # Save mode
     torch.save(net.state_dict(), "./model.pth")
     print("Saved model")
+
 
     # Evaluate network on the test dataset.  We aren't calculating gradients, so disable autograd to speed up
     # computations and reduce memory usage.
