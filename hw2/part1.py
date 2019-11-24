@@ -94,7 +94,7 @@ def lstm(input, hiddenSize):
     torch.zeros(input.size(0), input.size(1),hiddenSize))
 
     lstm = torch.nn.LSTM(input.size(2),hiddenSize,2)
-    # lstm_out, hidden = lstm(input.view(len(input), input.size(0),-1), hidden)
+    # lstm_out, (hn,cn) = lstm(input.view(len(input), input.size(0),-1), hidden)
     
     return lstm(input.view(len(input), input.size(0),-1), hidden)
 
@@ -105,4 +105,7 @@ def conv(input, weight):
           The convolution should be along the sequence axis.
           input is of size [batchSize, inputDim, seqLength]
     """
-    # self.conv1 = nn.Conv2d(1,10, kernel_size=5, stride=1)
+    conv1 = nn.Conv2d(input.size(1), 128,  kernel_size=5, stride=1)
+    for i in range(len(input)) :
+        x = conv1(input[i])
+    return x

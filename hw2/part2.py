@@ -40,6 +40,10 @@ class NetworkLstm(tnn.Module):
         TODO:
         Create and initialise weights and biases for the layers.
         """
+        self.lstm = torch.nn.LSTM(50, 100, 2)
+        self.l1 = torch.nn.Linear(100,64)
+        self.l2 = torch.nn.Linear(64,1)
+
 
     def forward(self, input, length):
         """
@@ -47,6 +51,16 @@ class NetworkLstm(tnn.Module):
         TODO:
         Create the forward pass through the network.
         """
+        hidden = (torch.zeros(100) , torch.zeros(100))
+        for i in range(length) :
+            x = input[i].view(input.shape[0],-1)
+            output, (h_n,c_n) = self.lstm(x, hidden)
+            x = self.l1(h_n)
+            x = tnn.ReLU(x)
+            x = self.l2(x)
+        return x
+        
+
 
 
 # Class for creating the neural network.
@@ -88,6 +102,15 @@ def lossFunc():
     will add a sigmoid to the output and calculate the binary
     cross-entropy.
     """
+    # # Sigmoid activation function is of the form f(x)=1/(1+e^-x)
+    # activationFunction = 0.0
+    # try: 
+    #     activationFunction = 1.0 / (1.0 + np.exp(-x))
+    # except ValueError:
+    #     print('wrong type of tensors is passed ')
+    # return activationFunction
+
+    return torch.nn.CrossEntropyLoss()
 
 
 def measures(outputs, labels):
