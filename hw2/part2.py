@@ -97,7 +97,7 @@ class NetworkCnn(tnn.Module):
         self.conv2 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
         self.max_pool2 = tnn.MaxPool1d(kernel_size=4)
         self.conv3 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
-        self.max_pool3 = tnn.functional.max_pool1d(kernel_size=8, padding=5)
+        self.max_pool3 = tnn.functional.max_pool1d
         self.linear = tnn.Linear(50,1)
 
     def forward(self, input, length):
