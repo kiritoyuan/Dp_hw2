@@ -32,11 +32,17 @@ class rnn(torch.nn.Module):
         """
                 # out, hiddenState = torch.nn.RNN(input, hidden)
         
-        input = self.ih(input.view(input.size(0) , input.size(1), -1))
-        rnn = torch.nn.RNN(64,128,2)
-        _, hiddenState = rnn(input,hidden)
-        hidden = self.hh(hiddenState)
-        return hidden
+        # input = self.ih(input.view(input.size(0) , input.size(1), -1))
+        # rnn = torch.nn.RNN(64,128,2)
+        # _, hiddenState = rnn(input,hidden)
+        # hidden = self.hh(hiddenState)
+        # return hidden
+        x = self.ih(input)
+        hid = self.hh(hidden)
+        # tanh activation: tanh(wight_input * input + weight_hidden*hidden + bias)
+        tanh = torch.nn.functional.tanh(x + hid + 0)
+        return tanh
+
     def forward(self, input):
         hidden = torch.zeros(128)
         """
@@ -51,8 +57,8 @@ class rnn(torch.nn.Module):
         
         # hidden0 = self.rnnCell(input, hidden)
 
-        for i in range( len(input)) :
-            x = self.rnnCell(input[i],hidden)
+        for i in input :
+            x = self.rnnCell(i, hidden)
         return x
         
 
@@ -65,23 +71,13 @@ class rnnSimplified(torch.nn.Module):
               the network defined by this class is equivalent to the
               one defined in class "rnn".
         """
-        # self.net = None
-        # self.net = torch.nn.RNN(64,128,num_layers=)
-        self.ih = torch.nn.Linear(64, 128)
-        
-        self.rnn = torch.nn.RNN(128,128,2)
-    def net(self, input, hidden=None):
-        x = input.view(input.size(0) ,input.size(1), -1)
-        x = self.ih(x)
-        # x.view(x.shape[0], -1)
-        output, hidden = self.rnn(x, hidden)
-        
-        return output, hidden
+        self.net = torch.nn.RNN(64,128,num_layers=1)
+
+
 
     def forward(self, input):
         hidden = torch.zeros(128)
-        for i in range(len(input)):
-            _, hidden = self.net(input[i], hidden)
+        out, hidden = self.net(input, hidden)
             
         return hidden
 
@@ -90,13 +86,16 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    hidden = (torch.zeros(input.size(0), input.size(1), hiddenSize), 
-    torch.zeros(input.size(0), input.size(1),hiddenSize))
+    # hidden = (torch.zeros(input.size(0), input.size(1), hiddenSize), 
+    # torch.zeros(input.size(0), input.size(1),hiddenSize))
 
-    lstm = torch.nn.LSTM(input.size(2),hiddenSize,2)
-    # lstm_out, (hn,cn) = lstm(input.view(len(input), input.size(0),-1), hidden)
+    # lstm = torch.nn.LSTM(input.size(2),hiddenSize,2)
+    # # lstm_out, (hn,cn) = lstm(input.view(len(input), input.size(0),-1), hidden)
+    input_size = list(input.size())[1] #?to fix
+
+    self.lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
     
-    return lstm(input.view(len(input), input.size(0),-1), hidden)
+    return self.lstm(input)
 
 def conv(input, weight):
     """
@@ -105,7 +104,10 @@ def conv(input, weight):
           The convolution should be along the sequence axis.
           input is of size [batchSize, inputDim, seqLength]
     """
-    conv1 = nn.Conv2d(input.size(1), 128,  kernel_size=5, stride=1)
-    for i in range(len(input)) :
-        x = conv1(input[i])
-    return x
+    # conv1 = nn.Conv2d(input.size(1), 128,  kernel_size=5, stride=1)
+    # for i in range(len(input)) :
+    #     x = conv1(input[i])
+    input_size = input.size(2)
+    weight_size = len(weight)
+    conv = torch.nn.Conv1d(input_size, weight_size, kernel_size=8, padding=5)
+    return conv(input, weight)

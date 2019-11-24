@@ -40,9 +40,12 @@ class NetworkLstm(tnn.Module):
         TODO:
         Create and initialise weights and biases for the layers.
         """
+        # according to pytorch document, batch_first should be true 
+        # if the input and output tensors are provided as (batch, seq, feature). 
         self.lstm = torch.nn.LSTM(50, 100, batch_first=True)
         self.l1 = torch.nn.Linear(100,64)
         self.l2 = torch.nn.Linear(64,1)
+
 
 
     def forward(self, input, length):
@@ -61,11 +64,17 @@ class NetworkLstm(tnn.Module):
         #     x = tnn.ReLU(x)
         #     x = self.l2(x)
         # return x
+
+        # src: https://pytorch.org/docs/stable/nn.html
+        # h_n  hidden state 
+        # c_n  hidden cell
         output, (h_n, c_n) = self.lstm(input)
-        x = h_n
-        x = self.l1(x)
-        x = tnn.functional.ReLU(x)
+        
+        x = self.l1(h_n)
+
+        x = tnn.functional.relu(x)
         x = self.l2(x)
+
         return x.view(-1)
         
 
@@ -94,13 +103,14 @@ class NetworkCnn(tnn.Module):
         TODO:
         Create and initialise weights and biases for the layers.
         """
-        self.conv1 = tnn.Conv1d(50,50,8, padding=5)
-        self.pool1 = tnn.MaxPool1d(4)
-        self.conv2 = tnn.Conv1d(50,50,8, padding=5)
-        self.pool2 = tnn.MaxPool1d(4)
-        self.conv3 = tnn.Conv1d(50,50,8, padding=5)
-        self.pool3 = tnn.functional.max_pool1d
-        self.fc = tnn.Linear(50,1)
+        
+        self.conv1 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
+        self.max_pool1 = tnn.MaxPool1d(kernel_size=4)
+        self.conv2 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
+        self.max_pool2 = tnn.MaxPool1d(kernel_size=4)
+        self.conv3 = tnn.Conv1d(50, 50, kernel_size=8, padding=5)
+        self.max_pool3 = tnn.functional.max_pool1d
+        self.linear = tnn.Linear(50,1)
 
     def forward(self, input, length):
         """
@@ -108,7 +118,22 @@ class NetworkCnn(tnn.Module):
         TODO:
         Create the forward pass through the network.
         """
-        x = self.conv1(input.permute)
+        # shape: input size is (N, C_in, L) output size is (N, C_out, L_out)
+        x = input.permute(0,2,1)
+
+        x = self.conv1(x)
+        x = self.max_pool1(tnn.functional.relu(x))
+        x = self.conv2(x)
+        x = self.max_pool2(tnn.functional.relu(x))
+        x = self.conv3(x)
+        # The max pool over time operation refers to taking the
+        # maximum val from the entire output channel. 
+        x = self.max_pool3(x, kernel_size=x.size()[2])
+        # make sure input's size
+        x = x.view(-1, 50)
+        x = self.linear(x)
+
+        return x.view(-1)
 
 def lossFunc():
     """
@@ -125,7 +150,9 @@ def lossFunc():
     #     print('wrong type of tensors is passed ')
     # return activationFunction
 
-    return torch.nn.CrossEntropyLoss()
+    # src: https://pytorch.org/docs/stable/nn.html
+    # This loss combines a Sigmoid layer and the BCELoss in one single class
+    return torch.nn.BCEWithLogitsLoss()
 
 
 def measures(outputs, labels):
@@ -136,7 +163,28 @@ def measures(outputs, labels):
     negatives from the given batch outputs and provided labels.
 
     outputs and labels are torch tensors.
-    """
+    # """
+    # True positives are positive reviews correctly identified as positive. 
+    # True negatives are negative reviews correctly identified as negative. 
+    # False positives are negative reviews incorrectly identified as positive.
+    #  False negatives are postitive reviews incorrectly identified as negative.
+    true_pos, true_neg, false_pos, false_neg = 0, 0, 0, 0
+
+    out = outputs.view(-1)
+    for i in range(out.size()[0]): #?could fix
+        if labels[i]:
+            # true positive
+            if out[i] >= 0.7:
+                true_pos += 1
+            # false neg
+            elif out[i] <= 0.4: 
+                false_neg += 1
+        else: 
+            if out[i] >= 0.7:
+                false_pos += 1
+            elif out[i] <= 0.4:
+                true_neg += 1
+    return true_pos, true_neg, false_pos, false_neg
 
 
 def main():
