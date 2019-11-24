@@ -107,6 +107,7 @@ class NetworkCnn(tnn.Module):
         Create the forward pass through the network.
         """
         # shape: input size is (N, C_in, L) output size is (N, C_out, L_out)
+        # (batch, inputDim, seq_len)
         x = input.permute(0,2,1)
 
         x = self.conv1(x)
@@ -114,14 +115,14 @@ class NetworkCnn(tnn.Module):
         x = self.conv2(x)
         x = self.max_pool2(tnn.functional.relu(x))
         x = self.conv3(x)
+        x = tnn.functional.relu(x)
         # The max pool over time operation refers to taking the
         # maximum val from the entire output channel. 
-        x = self.max_pool3(x, kernel_size=x.size()[2])
-        # make sure input's size
-        x = x.view(-1, 50)
+        x = x.max(dim=-1)[0]
         x = self.linear(x)
+        x = x.squeeze()
+        return x
 
-        return x.view(-1)
 
 def lossFunc():
     """
@@ -149,20 +150,21 @@ def measures(outputs, labels):
     # False positives are negative reviews incorrectly identified as positive.
     #  False negatives are postitive reviews incorrectly identified as negative.
     true_pos, true_neg, false_pos, false_neg = 0, 0, 0, 0
-
+    
     out = outputs.view(-1)
+    
     for i in range(out.size()[0]): #?could fix
         if labels[i]:
             # true positive
-            if out[i] >= 0.7:
+            if out[i] > 0:
                 true_pos += 1
             # false neg
-            elif out[i] <= 0.4: 
+            elif out[i] < 0: 
                 false_neg += 1
         else: 
-            if out[i] >= 0.7:
+            if out[i] > 0:
                 false_pos += 1
-            elif out[i] <= 0.4:
+            elif out[i] < 0:
                 true_neg += 1
     return true_pos, true_neg, false_pos, false_neg
 
