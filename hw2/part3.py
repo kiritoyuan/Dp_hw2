@@ -34,14 +34,75 @@ class Network(tnn.Module):
         return x.view(-1)
 
 
+stop_words = set({'ourselves', 'hers', 'between', 'yourself', 'again',
+                  'there', 'about', 'once', 'during', 'out', 'very', 'having',
+                  'with', 'they', 'own', 'an', 'be', 'some', 'for', 'do', 'its',
+                  'yours', 'such', 'into', 'of', 'most', 'itself', 'other',
+                  'off', 'is', 's', 'am', 'or', 'who', 'as', 'from', 'him',
+                  'each', 'the', 'themselves', 'below', 'are', 'we',
+                  'these', 'your', 'his', 'through', 'don', 'me', 'were',
+                  'her', 'more', 'himself', 'this', 'down', 'should', 'our',
+                  'their', 'while', 'above', 'both', 'up', 'to', 'ours', 'had',
+                  'she', 'all', 'no', 'when', 'at', 'any', 'before', 'them',
+                  'same', 'and', 'been', 'have', 'in', 'will', 'on', 'does',
+                  'yourselves', 'then', 'that', 'because', 'what', 'over',
+                  'why', 'so', 'can', 'did', 'not', 'now', 'under', 'he', 'you',
+                  'herself', 'has', 'just', 'where', 'too', 'only', 'myself',
+                  'which', 'those', 'i', 'after', 'few', 'whom', 't', 'being',
+                  'if', 'theirs', 'my', 'against', 'a', 'by', 'doing', 'it',
+                  'how', 'further', 'was', 'here', 'than','m','ll','the'})
+
+punctuation = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+
+
 class PreProcessing():
     def pre(x):
         """Called after tokenization"""
+   
+        # remove the stop_words 
+        filtered_sentence = [w for w in x if not w in stop_words]
+        filtered_sentence = []
+        for w in x:
+            if w not in stop_words:
+                filtered_sentence.append(w)
+
+        # remove string.punctuation
+        x = [''.join(c for c in s if c not in punctuation) for s in filtered_sentence]
+        # remove empty string
+        x = [s for s in x if s]
+
+      
         return x
 
     def post(batch, vocab):
         """Called after numericalization but prior to vectorization"""
+        
         return batch
+    # # this functin is used for data augmentation
+    # def shuffle_tokenized(text):
+    #     random.shuffle(text)
+    #     newl=list(text)
+    #     shuffled.append(newl)
+    #     return text
+    # # data augmentation
+    # # given a tokenized text, return a list of text with 10 new sentence
+    # # question how to implement this in main?
+    # def data_augmentation(text): 
+    #     augmented = []
+    #     reps = []
+    #     for i in range(11):
+    #     #generate 11 new reviews
+    #     shuffled = [text]
+    #     shuffle_tokenized(shuffled[-1])
+    #     for k in shuffled:
+    #         '''create new review by joining the shuffled sentences'''
+    #         s = ' '
+    #         new_sentence = s.join(k)
+    #         if new_rev not in augmented:
+    #             augmented.append(new_sentence)
+    #         else:
+    #             reps.append(new_sentence)
+    #     return reps
 
     text_field = data.Field(lower=True, include_lengths=True, batch_first=True, preprocessing=pre, postprocessing=post)
 
@@ -65,6 +126,8 @@ def main():
     labelField = data.Field(sequential=False)
 
     train, dev = IMDB.splits(textField, labelField, train="train", validation="dev")
+   
+
 
     textField.build_vocab(train, dev, vectors=GloVe(name="6B", dim=50))
     labelField.build_vocab(train, dev)
