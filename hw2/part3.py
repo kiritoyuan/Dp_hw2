@@ -12,29 +12,31 @@ from imdb_dataloader import IMDB
 class Network(tnn.Module):
     def __init__(self):
         super(Network, self).__init__()
-        # according to pytorch document, batch_first should be true 
-        # if the input and output tensors are provided as (batch, seq, feature). 
-        self.lstm = torch.nn.LSTM(50, 100, batch_first=True)
-        self.l1 = torch.nn.Linear(100, 64)
-        self.l2 = torch.nn.Linear(64, 1)
+
+        self.lstm = tnn.LSTM(
+            50, 100, batch_first=True
+        )  # input is of shape (batch_size, seq_len, features) so batch_first is required
+        self.fc1 = tnn.Linear(100, 64)
+        self.fc2 = tnn.Linear(64, 1)
 
     def forward(self, input, length):
         """
         DO NOT MODIFY FUNCTION SIGNATURE
         Create the forward pass through the network.
         """
-        # src: https://pytorch.org/docs/stable/nn.html
-        # h_n  hidden state 
-        # c_n  hidden cell
+
+        # h_n = hidden state
+        # c_n = cell state
         output, (h_n, c_n) = self.lstm(input)
-        # LSTM(hidden dim = 100) -> Linear(64) -> ReLu-> Linear(1)
-        x = tnn.functional.relu(self.l1(h_n))
-        x = self.l2(x)
+        x = h_n
+        x = self.fc1(x)
+        x = tnn.functional.relu(x)
+        x = self.fc2(x)
 
         return x.view(-1)
 
 
-class PreProcessing():
+class PreProcessing:
     def pre(x):
         """Called after tokenization"""
         return x
@@ -43,7 +45,13 @@ class PreProcessing():
         """Called after numericalization but prior to vectorization"""
         return batch
 
-    text_field = data.Field(lower=True, include_lengths=True, batch_first=True, preprocessing=pre, postprocessing=post)
+    text_field = data.Field(
+        lower=True,
+        include_lengths=True,
+        batch_first=True,
+        preprocessing=pre,
+        postprocessing=post,
+    )
 
 
 def lossFunc():
@@ -51,9 +59,8 @@ def lossFunc():
     Define a loss function appropriate for the above networks that will
     add a sigmoid to the output and calculate the binary cross-entropy.
     """
-    # src: https://pytorch.org/docs/stable/nn.html
-    # This loss combines a Sigmoid layer and the BCELoss in one single class
-    return torch.nn.BCEWithLogitsLoss()
+    return tnn.BCEWithLogitsLoss()
+
 
 def main():
     # Use a GPU if available, as it should be faster.
@@ -69,20 +76,30 @@ def main():
     textField.build_vocab(train, dev, vectors=GloVe(name="6B", dim=50))
     labelField.build_vocab(train, dev)
 
-    trainLoader, testLoader = data.BucketIterator.splits((train, dev), shuffle=True, batch_size=64,
-                                                         sort_key=lambda x: len(x.text), sort_within_batch=True)
+    trainLoader, testLoader = data.BucketIterator.splits(
+        (train, dev),
+        shuffle=True,
+        batch_size=64,
+        sort_key=lambda x: len(x.text),
+        sort_within_batch=True,
+    )
 
     net = Network().to(device)
-    criterion =lossFunc()
-    optimiser = topti.Adam(net.parameters(), lr=0.001)  # Minimise the loss using the Adam algorithm.
+    criterion = lossFunc()
+    optimiser = topti.Adam(
+        net.parameters(), lr=0.001
+    )  # Minimise the loss using the Adam algorithm.
 
     for epoch in range(10):
         running_loss = 0
 
         for i, batch in enumerate(trainLoader):
             # Get a batch and potentially send it to GPU memory.
-            inputs, length, labels = textField.vocab.vectors[batch.text[0]].to(device), batch.text[1].to(
-                device), batch.label.type(torch.FloatTensor).to(device)
+            inputs, length, labels = (
+                textField.vocab.vectors[batch.text[0]].to(device),
+                batch.text[1].to(device),
+                batch.label.type(torch.FloatTensor).to(device),
+            )
 
             labels -= 1
 
@@ -104,7 +121,10 @@ def main():
             running_loss += loss.item()
 
             if i % 32 == 31:
-                print("Epoch: %2d, Batch: %4d, Loss: %.3f" % (epoch + 1, i + 1, running_loss / 32))
+                print(
+                    "Epoch: %2d, Batch: %4d, Loss: %.3f"
+                    % (epoch + 1, i + 1, running_loss / 32)
+                )
                 running_loss = 0
 
     num_correct = 0
@@ -118,8 +138,11 @@ def main():
     with torch.no_grad():
         for batch in testLoader:
             # Get a batch and potentially send it to GPU memory.
-            inputs, length, labels = textField.vocab.vectors[batch.text[0]].to(device), batch.text[1].to(
-                device), batch.label.type(torch.FloatTensor).to(device)
+            inputs, length, labels = (
+                textField.vocab.vectors[batch.text[0]].to(device),
+                batch.text[1].to(device),
+                batch.label.type(torch.FloatTensor).to(device),
+            )
 
             labels -= 1
 
@@ -133,5 +156,6 @@ def main():
 
     print(f"Classification accuracy: {accuracy}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
