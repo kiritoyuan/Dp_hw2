@@ -30,13 +30,6 @@ class rnn(torch.nn.Module):
               some input (inputDim = 64) and the current hidden state
               (hiddenDim = 128), and return the new hidden state.
         """
-                # out, hiddenState = torch.nn.RNN(input, hidden)
-        
-        # input = self.ih(input.view(input.size(0) , input.size(1), -1))
-        # rnn = torch.nn.RNN(64,128,2)
-        # _, hiddenState = rnn(input,hidden)
-        # hidden = self.hh(hiddenState)
-        # return hidden
         x = self.ih(input)
         hid = self.hh(hidden)
         # tanh activation: tanh(wight_input * input + weight_hidden*hidden + bias)
@@ -53,9 +46,7 @@ class rnn(torch.nn.Module):
               Return the final hidden state after the
               last input in the sequence has been processed.
         """
-        # batchSize = input.size(1)
         
-        # hidden0 = self.rnnCell(input, hidden)
 
         for i in input :
             hidden = self.rnnCell(i, hidden)
@@ -86,16 +77,15 @@ def lstm(input, hiddenSize):
     TODO: Let variable lstm be an instance of torch.nn.LSTM.
           Variable input is of size [batchSize, seqLength, inputDim]
     """
-    # hidden = (torch.zeros(input.size(0), input.size(1), hiddenSize), 
-    # torch.zeros(input.size(0), input.size(1),hiddenSize))
+    hidden = (torch.zeros(128), 
+    torch.zeros(128))
 
-    # lstm = torch.nn.LSTM(input.size(2),hiddenSize,2)
-    # # lstm_out, (hn,cn) = lstm(input.view(len(input), input.size(0),-1), hidden)
-    input_size = list(input.size())[1] #?to fix
+    input_size = input.size()[1] #?to fix
 
-    lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
+    # lstm = torch.nn.LSTM(input_size, hiddenSize, 1)
+    lstm = torch.nn.LSTM(input_size, hiddenSize, batch_first=True)
     
-    return lstm(input)
+    return lstm(input, hidden)
 
 def conv(input, weight):
     """
@@ -104,10 +94,6 @@ def conv(input, weight):
           The convolution should be along the sequence axis.
           input is of size [batchSize, inputDim, seqLength]
     """
-    # conv1 = nn.Conv2d(input.size(1), 128,  kernel_size=5, stride=1)
-    # for i in range(len(input)) :
-    #     x = conv1(input[i])
-    # input_size = input.size(2)
-    # weight_size = len(weight)
-    # conv = torch.nn.Conv1d(input_size, weight_size, kernel_size=8, padding=5)
+    # src :https://pytorch.org/docs/stable/nn.functional.html
+    #  torch.nn.functional.conv1d(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1)
     return torch.nn.functional.conv1d(input, weight)
